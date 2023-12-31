@@ -6,8 +6,8 @@ from client import User
 from pyrogram import Client, filters 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 
-@Client.on_message(filters.private & filters.text)
-async def lazy_answer(client, message):
+@Client.on_message(filters.private & filters.text & filters.incoming)
+async def Search(client, message):
     content = message.text
     user = message.from_user.first_name
     user_id = message.from_user.id
