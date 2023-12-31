@@ -1,156 +1,43 @@
-import asyncio
-from info import *
-from utils import *
-from time import time 
-from client import User
-from pyrogram import Client, filters 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-@Client.on_message(filters.private & filters.text)
-async def Search(bot, message):
-    query   = message.text
-    user = message.from_user.first_name
-    user_id = message.from_user.id
-    if content.startswith("/") or content.startswith("#"): return  # ignore commands and hashtags
-    if user_id in ADMINS: return # ignore admins
-    await msg.reply_text(
-         text=f"<b>ʜᴇʏ {user} 😍 ,\n\nʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ᴍᴏᴠɪᴇs ꜰʀᴏᴍ ʜᴇʀᴇ. ʀᴇǫᴜᴇsᴛ ɪᴛ ɪɴ ᴏᴜʀ <a href=https://t.me/+_AWkWy0499dlZjQ1>Fʀᴇᴇ Mᴏᴠɪᴇ Gʀᴏᴜᴘ</a> ᴏʀ ɢᴇᴛ ᴘʀᴇᴍɪᴜᴍ ᴍᴇᴍʙᴇʀꜱʜɪᴘ 👇</b>",   
-         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("👑 Gᴇᴛ Pʀᴇᴍɪᴜᴍ Mᴇᴍʙᴇʀꜱʜɪᴘ 🫅", url=f"https://t.me/SKadminrobot")]])
+# Replace with your token obtained from BotFather
+TOKEN = '6922466504:AAFSCMMHX4N2nmagHqwpCLWb0bsJXpsB4Xg'
+
+# Replace with your admin user IDs
+ADMINS = [5928972764, 7891356780]
+
+def start(update: Update, context: CallbackContext) -> None:
+    user = update.message.from_user.first_name
+    user_id = update.message.from_user.id
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Hey {user}, you can't get movies from here. Please request it in our Free Movie Group or get premium membership.",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Get Premium Membership", url="https://t.me/SKadminrobot")]])
     )
-    await bot.send_message(
+    context.bot.send_message(
         chat_id=LOG_CHANNEL,
-        text=f"<b>#𝐏𝐌_𝐌𝐒𝐆\n\nNᴀᴍᴇ : {user}\n\nID : {user_id}\n\nMᴇssᴀɢᴇ : {content}</b>"
+        text=f"#PM_MSG\n\nName: {user}\n\nID: {user_id}\n\nMessage: {update.message.text}"
     )
-    
 
+def echo(update: Update, context: CallbackContext) -> None:
+    if update.message.text.startswith("/") or update.message.text.startswith("#"):
+        return  # ignore commands and hashtags
 
+    user_id = update.message.from_user.id
+    if user_id in ADMINS:
+        return  # ignore admins
 
+    start(update, context)
 
+def main() -> None:
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
 
+    dispatcher.add_handler(MessageHandler(Filters.text & Filters.private, echo))
 
+    updater.start_polling()
+    updater.idle()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-        # i am NOT INTRESTED IN BEING YOUR SECOND FATHER... SO DON'T REMOVE MY CREDIT...
-        #                               @LazyDeveloperr
-
-
-
-
-
-
-
-
-
-
-
-        #                                        ...PRESENTING...
-        #                          A R T I F i C I A L  -  I N T E L i G E N C E
-        #                                      .in  Auto-Filter-Bot.
-        #                                         @LazyDeveloperr
-
-                                      
-
-
-
-
-
-
-
-
-
-
-        # this line is for copy-pasters...
-        # ...while you are removing my credit and calling yourself a developerr... 
-        # _____ just imagine, At that time i am fucking your mom and sis at same time, harder & too harder...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
-#         i am NOT INTRESTED IN BEING YOUR SECOND FATHER... SO DON'T REMOVE MY CREDIT...
-#                                       @LazyDeveloperr
-# 
-# 
-# 
-# 
-#
-#
-#
-#
-#
-#
-#
-#                                                ...PRESENTING...
-#                                  A R T I F i C I A L  -  I N T E L i G E N C E
-#                                              .in  Auto-Filter-Bot.
-#                                                 @LazyDeveloperr
-#
-#                                       
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#         this line is for copy-pasters...
-#         ...while you are removing my credit and calling yourself a developerr... 
-#         _____ just imagine, At that time i am fucking your mom and sis at same time, harder & too harder...
-#
+if __name__ == '__main__':
+    main()
