@@ -1,30 +1,21 @@
 import asyncio
-from info import *
-from utils import *
-from time import time 
 from client import User
 from pyrogram import Client, filters 
+from info import *
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 
-@Bot.on_message(filters.incoming)
-async def inline_handlers(_, event: Message):
-    if event.text == '/start':
-        return
-    answers = f'**Aᴅᴍɪɴ ➠ @SKadminrobot \n\n**'
-    async for message in User.search_messages(chat_id=Config.CHANNEL_ID, limit=1, query=event.text):
-        if message.text:
-            thumb = None
-            f_text = message.text
-            msg_text = message.text.html
-            if "|||" in message.text:
-                f_text = message.text.split("|||", 1)[0]
-                msg_text = message.text.html.split("|||", 1)[0]
-            answers += f'**🎬 ' + '' + f_text.split("\n", 1)[0] + '' + '\n ➠ ' + '' + f_text.split("\n", 2)[-1] + ' \n**'
-    try:
-        msg = await event.reply_text(answers)
-        await asyncio.sleep(300)
-        await event.delete()
-        await msg.delete()
-    except Exception as e:
-        print(f"[{Config.BOT_SESSION_NAME}] - Failed to Answer - {event.from_user.first_name}")
-
+@Client.on_message(filters.private & filters.text)
+async def lazy_answer(bot, message):
+    content = message.text
+    user = message.from_user.first_name
+    user_id = message.from_user.id
+    if content.startswith("/") or content.startswith("#"): return  # ignore commands and hashtags
+    if user_id in ADMINS: return # ignore admins
+    await message.reply_text(
+         text=f"<b>ʜᴇʏ {user} 😍 ,\n\nʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ᴍᴏᴠɪᴇs ꜰʀᴏᴍ ʜᴇʀᴇ. ʀᴇǫᴜᴇsᴛ ɪᴛ ɪɴ ᴏᴜʀ <a href=https://t.me/+_AWkWy0499dlZjQ1>Fʀᴇᴇ Mᴏᴠɪᴇ Gʀᴏᴜᴘ</a> ᴏʀ ɢᴇᴛ ᴘʀᴇᴍɪᴜᴍ ᴍᴇᴍʙᴇʀꜱʜɪᴘ 👇</b>",   
+         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("👑 Gᴇᴛ Pʀᴇᴍɪᴜᴍ Mᴇᴍʙᴇʀꜱʜɪᴘ 🫅", url=f"https://t.me/SKadminrobot")]])
+    )
+    await bot.send_message(
+        chat_id=LOG_CHANNEL,
+        text=f"<b>#𝐏𝐌_𝐌𝐒𝐆\n\nNᴀᴍᴇ : {user}\n\nID : {user_id}\n\nMᴇssᴀɢᴇ : {content}</b>"
+    )
