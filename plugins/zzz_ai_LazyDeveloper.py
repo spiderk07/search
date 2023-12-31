@@ -1,9 +1,10 @@
-from utils import temp
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram import Client, filters
+import asyncio
 from info import *
-import openai
-openai.api_key = OPENAI_API
+from utils import *
+from time import time 
+from client import User
+from pyrogram import Client, filters 
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 
 @Client.on_message(filters.private & filters.text)
 async def lazy_answer(client, message):
