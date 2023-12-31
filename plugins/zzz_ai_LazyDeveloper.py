@@ -1,43 +1,30 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+import asyncio
+from info import *
+from utils import *
+from time import time 
+from client import User
+from pyrogram import Client, filters 
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 
-# Replace with your token obtained from BotFather
-TOKEN = '6922466504:AAFSCMMHX4N2nmagHqwpCLWb0bsJXpsB4Xg'
+@Bot.on_message(filters.incoming)
+async def inline_handlers(_, event: Message):
+    if event.text == '/start':
+        return
+    answers = f'**Aᴅᴍɪɴ ➠ @SKadminrobot \n\n**'
+    async for message in User.search_messages(chat_id=Config.CHANNEL_ID, limit=1, query=event.text):
+        if message.text:
+            thumb = None
+            f_text = message.text
+            msg_text = message.text.html
+            if "|||" in message.text:
+                f_text = message.text.split("|||", 1)[0]
+                msg_text = message.text.html.split("|||", 1)[0]
+            answers += f'**🎬 ' + '' + f_text.split("\n", 1)[0] + '' + '\n ➠ ' + '' + f_text.split("\n", 2)[-1] + ' \n**'
+    try:
+        msg = await event.reply_text(answers)
+        await asyncio.sleep(300)
+        await event.delete()
+        await msg.delete()
+    except Exception as e:
+        print(f"[{Config.BOT_SESSION_NAME}] - Failed to Answer - {event.from_user.first_name}")
 
-# Replace with your admin user IDs
-ADMINS = [5928972764, 7891356780]
-
-def start(update: Update, context: CallbackContext) -> None:
-    user = update.message.from_user.first_name
-    user_id = update.message.from_user.id
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=f"Hey {user}, you can't get movies from here. Please request it in our Free Movie Group or get premium membership.",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Get Premium Membership", url="https://t.me/SKadminrobot")]])
-    )
-    context.bot.send_message(
-        chat_id=LOG_CHANNEL,
-        text=f"#PM_MSG\n\nName: {user}\n\nID: {user_id}\n\nMessage: {update.message.text}"
-    )
-
-def echo(update: Update, context: CallbackContext) -> None:
-    if update.message.text.startswith("/") or update.message.text.startswith("#"):
-        return  # ignore commands and hashtags
-
-    user_id = update.message.from_user.id
-    if user_id in ADMINS:
-        return  # ignore admins
-
-    start(update, context)
-
-def main() -> None:
-    updater = Updater(TOKEN)
-    dispatcher = updater.dispatcher
-
-    dispatcher.add_handler(MessageHandler(Filters.text & Filters.private, echo))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
