@@ -31,7 +31,7 @@ async def search(bot, message):
           buttons = []
           for movie in movies: 
               buttons.append([InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")])
-          msg = await message.reply_photo(photo="https://graph.org/file/bf694200b8ad1b145f3c3.gif",
+          msg = await message.reply_photo(photo="https://telegra.ph/file/267b2c125a1241b67001b.gif",
                                           caption="<b><I>I Couldn't find anything related to Your Query😕.\nDid you mean any of these?</I></b>", 
                                           reply_markup=InlineKeyboardMarkup(buttons))
        else:
