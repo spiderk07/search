@@ -17,7 +17,7 @@ async def search(bot, message):
     if message.text.startswith("/"):
        return    
     query   = message.text 
-    head    = "<b>★ Pᴏᴡᴇʀᴇᴅ ʙʏ <I>@Skcreator7</I>\n\n🍿 Your Movie Links 👇<b>\n\n"
+    head    = "<b>★ Pᴏᴡᴇʀᴇᴅ ʙʏ <I>@Skcreator7</I>\n\n🍿 Your Movie Links 👇</b>\n\n"
     results = ""
     try:
        for channel in channels:
@@ -25,7 +25,7 @@ async def search(bot, message):
                name = (msg.text or msg.caption).split("\n")[0]
                if name in results:
                   continue 
-               results += f"<b><I>♻️ {name}\n🔗 {msg.link}</I></b>\n\n"                                                      
+               results += f"<b><i>♻️ {name}</i></b><br><a href="{msg.link}">🔗 {msg.link}</a>"                                                      
        if bool(results)==False:
           movies = await search_imdb(query)
           buttons = []
@@ -49,7 +49,7 @@ async def recheck(bot, update):
     try:      
        typed = update.message.reply_to_message.from_user.id
     except:
-       return await update.message.delete(2)       
+       return await update.message.delete(30)       
     if clicked != typed:
        return await update.answer("That's not for you! 👀", show_alert=True)
 
@@ -79,7 +79,7 @@ async def request(bot, update):
     try:      
        typed = update.message.reply_to_message.from_user.id
     except:
-       return await update.message.delete()       
+       return await update.message.delete(60)       
     if clicked != typed:
        return await update.answer("That's not for you! 👀", show_alert=True)
 
