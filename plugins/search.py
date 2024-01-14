@@ -17,7 +17,7 @@ async def search(bot, message):
     if message.text.startswith("/"):
        return    
     query   = message.text 
-    head    = "<b>★ Pᴏᴡᴇʀᴇᴅ ʙʏ <I>@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</b>\n\n"
+    head    = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
     results = ""
     try:
        for channel in channels:
@@ -65,7 +65,7 @@ async def recheck(bot, update):
                name = (msg.text or msg.caption).split("\n")[0]
                if name in results:
                   continue 
-               results += f"<b><I>♻️🍿 {name}</I></b>\n\n🔗 {msg.link}</I></b>\n\n"
+               results += f"<b><I>🎬 [{str(name).upper()}]({msg.link})</b>\n\n"
        if bool(results)==False:          
           return await update.message.edit("Still no results found! Please Request To Group Admin", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 Request To Admin 🎯", callback_data=f"request_{id}")]]))
        await update.message.edit(text=head+results, disable_web_page_preview=True)
