@@ -17,7 +17,7 @@ async def search(bot, message):
     if message.text.startswith("/"):
        return    
     query   = message.text 
-    head    = "<b>★ Pᴏᴡᴇʀᴇᴅ ʙʏ <I>@Skcreator7</I>\n\n🍿 Your Movie Links 👇</b>\n\n"
+    head    = "<b>★ Pᴏᴡᴇʀᴇᴅ ʙʏ <I>@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</b>\n\n"
     results = ""
     try:
        for channel in channels:
@@ -25,7 +25,7 @@ async def search(bot, message):
                name = (msg.text or msg.caption).split("\n")[0]
                if name in results:
                   continue 
-               results += f"<b>🎬 {name}</b><a href="{msg.link}">🔗 {msg.link}</a>"                                                      
+               results += f"<b><I>🎬 [{str(name).upper()}]({msg.link})</b>\n\n"                                                      
        if bool(results)==False:
           movies = await search_imdb(query)
           buttons = []
