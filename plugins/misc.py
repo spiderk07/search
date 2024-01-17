@@ -58,7 +58,9 @@ async def misc(bot, update):
         await update.message.edit(text=script.ABOUT.format((await bot.get_me()).mention), 
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
-         
+
+REGEX = r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
+
 @Client.on_message(filters.private & filters.text)
 async def send_thumbnail(bot, update):
     message = await update.reply_text(
