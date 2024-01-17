@@ -1,5 +1,6 @@
 pyrogram
 tgcrypto
+ytthumb
 motor[srv] 
 cinemagoer
 aiohttp
