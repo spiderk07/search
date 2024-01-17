@@ -1,6 +1,7 @@
 # Author: Fayas (https://github.com/FayasNoushad) (@FayasNoushad)
 
 import os
+from client import Bot
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
