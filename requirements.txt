@@ -1,6 +1,7 @@
 pyrogram==2.0.106 
 tgcrypto
-YTThumb==1.4.5
+ytthumb
+requests
 motor[srv] 
 cinemagoer
 aiohttp
