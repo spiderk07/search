@@ -1,4 +1,6 @@
 import os
+import ytthumb
+from dotenv import load_dotenv
 from utils import *
 from pyrogram import Client, filters 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
@@ -59,8 +61,6 @@ async def misc(bot, update):
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
 
-REGEX = r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
-
 @Client.on_message(filters.private & filters.text)
 async def send_thumbnail(bot, update):
     message = await update.reply_text(
@@ -68,17 +68,20 @@ async def send_thumbnail(bot, update):
         disable_web_page_preview=True,
         quote=True
     )
-    if ("youtube.com" in update.text) and ("/" in update.text) and ("=" in update.text):
-        id = update.text.split("=")[-1]
-    elif ("youtu.be" in update.text) and ("/" in update.text):
-        id = update.text.split("/")[-1]
-    else:
-        id = update.text
     try:
-        thumbnail = "https://img.youtube.com/vi/" + id + "/sddefault.jpg"
+        if " | " in update.text:
+            video = update.text.split(" | ", -1)[0]
+            quality = update.text.split(" | ", -1)[1]
+        else:
+            video = update.text
+            quality = "sd"
+        thumbnail = ytthumb.thumbnail(
+            video=video,
+            quality=quality
+        )
         await update.reply_photo(
             photo=thumbnail,
-            reply_markup=BUTTONS,
+            reply_markup=photo_buttons,
             quote=True
         )
         await message.delete()
@@ -86,6 +89,5 @@ async def send_thumbnail(bot, update):
         await message.edit_text(
             text=error,
             disable_web_page_preview=True,
-            reply_markup=BUTTONS
+            reply_markup=InlineKeyboardMarkup([BUTTON])
         )
-    
