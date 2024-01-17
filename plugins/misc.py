@@ -61,6 +61,35 @@ async def misc(bot, update):
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
 
+BUTTON = [InlineKeyboardButton("🎬 Mᴏᴠɪᴇꜱ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ🔎", url='https://t.me/+_AWkWy0499dlZjQ1')]
+
+@Client.on_callback_query()
+async def cb_data(_, message):
+    data = message.data.lower()
+    if data == "qualities":
+        await message.answer('Select a quality')
+        buttons = []
+        for quality in ytthumb.qualities():
+            buttons.append(
+                InlineKeyboardButton(
+                    text=ytthumb.qualities()[quality],
+                    callback_data=quality
+                )
+            )
+    if data == "back":
+        await message.edit_message_reply_markup(photo_buttons)
+    if data in ytthumb.qualities():
+        thumbnail = ytthumb.thumbnail(
+            video=message.message.reply_to_message.text,
+            quality=message.data
+        )
+        await message.answer('Updating')
+        await message.edit_message_media(
+            media=InputMediaPhoto(media=thumbnail),
+            reply_markup=photo_buttons
+        )
+        await message.answer('Updated Successfully')
+
 @Client.on_message(filters.private & filters.text)
 async def send_thumbnail(bot, update):
     message = await update.reply_text(
@@ -86,7 +115,7 @@ async def send_thumbnail(bot, update):
         await message.delete()
     except Exception as error:
         await message.edit_text(
-            text=error,
+            text="<b>ʜᴇʏ {user} 😍 ,\n\nʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ᴍᴏᴠɪᴇꜱ ꜰʀᴏᴍ ʜᴇʀᴇ, ʏᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴊᴏɪɴ <a href=https://t.me/+_AWkWy0499dlZjQ1>Mᴏᴠɪᴇ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ</a> ᴀɴᴅ ɢᴇᴛ ᴍᴏᴠɪᴇꜱ \n\nआप यहां से फिल्में नहीं प्राप्त कर सकते, आपको मूवी सर्च ग्रुप में ज्वॉइन होना होगा और फिल्में प्राप्त करनी होंगी 👇</b>",
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([BUTTON])
         )
