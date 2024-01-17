@@ -58,7 +58,7 @@ async def misc(bot, update):
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
          
-@Bot.on_message(filters.private & filters.text)
+@Client.on_message(filters.private & filters.text)
 async def send_thumbnail(bot, update):
     message = await update.reply_text(
         text="`Analysing...`",
