@@ -58,20 +58,31 @@ async def misc(bot, update):
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
          
-@Client.on_message(filters.private & filters.text)
-async def search(bot, message):
-    content = message.text
-    user = message.from_user.first_name
-    user_id = message.from_user.id
-    if content.startswith("/") or content.startswith("#"): 
-        return  # ignore commands and hashtags
-     
-    await message.reply_text(
-         text=f"<b>ʜᴇʏ {user} 😍 ,\n\nʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ᴍᴏᴠɪᴇꜱ ꜰʀᴏᴍ ʜᴇʀᴇ, ʏᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴊᴏɪɴ <a href=https://t.me/+_AWkWy0499dlZjQ1>Mᴏᴠɪᴇ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ</a> ᴀɴᴅ ɢᴇᴛ ᴍᴏᴠɪᴇꜱ \n\nआप यहां से फिल्में नहीं प्राप्त कर सकते, आपको मूवी सर्च ग्रुप में ज्वॉइन होना होगा और फिल्में प्राप्त करनी होंगी 👇</b>",   
-         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Mᴏᴠɪᴇ Sᴇᴀʀᴄʜ Gʀᴏᴜᴘ 🔎", url=f"https://t.me/+_AWkWy0499dlZjQ1")]])
+@Bot.on_message(filters.private & filters.text)
+async def send_thumbnail(bot, update):
+    message = await update.reply_text(
+        text="`Analysing...`",
+        disable_web_page_preview=True,
+        quote=True
     )
-    await bot.send_message(
-        chat_id=LOG_CHANNEL,
-        text=f"<b>#𝐏𝐌_𝐌𝐒𝐆\n\nNᴀᴍᴇ : {user}\n\nID : {user_id}\n\nMᴇssᴀɢᴇ : {content}</b>"
-    )
+    if ("youtube.com" in update.text) and ("/" in update.text) and ("=" in update.text):
+        id = update.text.split("=")[-1]
+    elif ("youtu.be" in update.text) and ("/" in update.text):
+        id = update.text.split("/")[-1]
+    else:
+        id = update.text
+    try:
+        thumbnail = "https://img.youtube.com/vi/" + id + "/sddefault.jpg"
+        await update.reply_photo(
+            photo=thumbnail,
+            reply_markup=BUTTONS,
+            quote=True
+        )
+        await message.delete()
+    except Exception as error:
+        await message.edit_text(
+            text=error,
+            disable_web_page_preview=True,
+            reply_markup=BUTTONS
+        )
     
