@@ -81,7 +81,6 @@ async def send_thumbnail(bot, update):
         )
         await update.reply_photo(
             photo=thumbnail,
-            reply_markup=photo_buttons,
             quote=True
         )
         await message.delete()
