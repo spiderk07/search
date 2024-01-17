@@ -1,7 +1,7 @@
 pyrogram==2.0.106 
 tgcrypto
 ytthumb
-requests
+python-dotenv
 motor[srv] 
 cinemagoer
 aiohttp
