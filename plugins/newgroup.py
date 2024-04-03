@@ -21,7 +21,7 @@ async def new_group(bot, message):
                         user_id=user_id, 
                         channels=[],
                         f_sub=False,
-                        verified=True)
+                        verified=False)
         
         m = await message.reply(f"Thanks for adding me in {message.chat.title} ✨\n\nPlease Get Access By /verify\n\n")
         
