@@ -12,13 +12,15 @@ RESULTS_PER_PAGE = 1  # Show one result per page
 async def delete_schedule(bot, message, delay: int):
     await asyncio.sleep(delay)
     try:
+        # Use bot parameter to delete the message
         await message.delete()
     except Exception as e:
         print(f"Error occurred while deleting message: {e}")
 
 # Function to save a scheduled message for deletion
-async def save_dlt_message(message, delete_time: int):
-    await delete_schedule(message.bot, message, delete_time)
+async def save_dlt_message(bot, message, delete_time: int):
+    # Pass bot parameter along with the message and time to delete
+    await delete_schedule(bot, message, delete_time)
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
@@ -83,7 +85,7 @@ async def search(bot, message):
 
             # Automatically delete message after 600 seconds (10 minutes)
             _time = int(time()) + (15 * 60)
-            await save_dlt_message(msg, _time)
+            await save_dlt_message(bot, msg, _time)
 
         # Send a sticker after the movie result
         sticker = "CAACAgIAAxkBAAEBHZJkGRgMPLKkz7qHvO2S7A2prh4gAAL5wADg6_9zQKaB1l3SO6f4d0E"  # Replace with your sticker ID
@@ -163,7 +165,7 @@ async def recheck(bot, update):
 
         # Fetch the channels linked with the group
         channels = (await get_group(update.message.chat.id))["channels"]
-        head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+        head = "<b><I>★ Pᴏᴡᴇʀᴇᴄreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
         found_results = []
 
         for channel in channels:
