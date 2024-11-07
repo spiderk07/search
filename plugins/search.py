@@ -117,12 +117,16 @@ async def page_navigation(bot, update):
         if start_idx + RESULTS_PER_PAGE < len(found_results):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
-        # Edit the message to show the current result and navigation buttons
+        # Send sticker after the result
         await update.message.edit(
             text=results,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
         )
+
+        # Send a sticker after the movie result
+        sticker = "CAACAgIAAxkBAAEBHZJkGRgMPLKkz7qHvO2S7A2prh4gAAL5wADg6_9zQKaB1l3SO6f4d0E"  # Replace with your sticker ID
+        await update.message.reply_sticker(sticker)
 
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
@@ -152,7 +156,7 @@ async def recheck(bot, update):
 
         # Fetch the channels linked with the group
         channels = (await get_group(update.message.chat.id))["channels"]
-        head = "<b><I>★ Pᴏᴡᴇʀᴇᴄreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+        head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
         found_results = []
 
         for channel in channels:
