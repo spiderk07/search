@@ -34,9 +34,7 @@ async def search(bot, message):
         if not found_results:
             # No results found in channels; suggest IMDb movies
             movies = await search_imdb(query)
-            buttons = []
-            for movie in movies:
-                buttons.append([InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")])
+            buttons = [[InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")] for movie in movies]
 
             msg = await message.reply_photo(
                 photo="https://graph.org/file/1ee45a6e2d4d6a9262a12.jpg",
@@ -93,9 +91,11 @@ async def page_navigation(bot, update):
         if clicked != typed:
             return await update.answer("That's not for you! 👀", show_alert=True)
 
-        # Load sticker and set a temporary message
+        # Send a sticker to simulate loading
         await update.message.reply_sticker("CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA")
-        temp_msg = await update.message.edit("Searching..💥")
+
+        # Wait briefly to let the sticker display before updating the results
+        await asyncio.sleep(1.5)  # Adjust delay as needed for best effect
 
         # Search across channels
         channels = (await get_group(update.message.chat.id))["channels"]
@@ -125,19 +125,44 @@ async def page_navigation(bot, update):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
         # Update the message with new results and navigation buttons
-        await temp_msg.edit(
+        await update.message.edit(
             text=f"<b><I>★ Powered by:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n" + results,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([buttons])
         )
 
         # Schedule deletion
-        await schedule_deletion(temp_msg, 600)
+        await schedule_deletion(update.message, 600)
 
     except Exception as e:
         print(f"Error in page_navigation: {e}")
         await update.message.edit(f"❌ Error: `{e}`")
 
+@Client.on_callback_query(filters.regex(r"^recheck_"))
+async def imdb_recheck(bot, update):
+    try:
+        # Extracting IMDb movie ID from callback data
+        movie_id = update.data.split("_")[1]
+        print(f"Rechecking IMDb for movie ID: {movie_id}")  # Debugging
+
+        # Fetching movie details
+        movie = await search_imdb(movie_id)
+        if not movie:
+            return await update.answer("No details found for this movie.", show_alert=True)
+
+        # Formatting and sending movie details
+        url = f"https://www.imdb.com/title/tt{movie_id}"
+        text = f"<b>IMDb Title:</b> {movie['title']}\n\n" + \
+               f"<b>Description:</b> {movie.get('description', 'No description available.')}\n\n" + \
+               f"<a href='{url}'>More on IMDb</a>"
+
+        await update.message.edit(text, disable_web_page_preview=True)
+
+    except Exception as e:
+        print(f"Error in imdb_recheck: {e}")
+        await update.message.edit(f"❌ Error: `{e}`")
+
+                
 @Client.on_callback_query(filters.regex(r"^request"))
 async def request(bot, update):
     clicked = update.from_user.id
