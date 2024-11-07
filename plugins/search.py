@@ -69,9 +69,9 @@ async def search(bot, message):
                 reply_markup=reply_markup
             )
 
-        # Automatically delete message after 600 seconds
-        _time = int(time()) + (15 * 60)
-        await save_dlt_message(msg, _time)
+        # Set the deletion time to 600 seconds (10 minutes)
+        _time = int(time()) + 600  # 600 seconds = 10 minutes
+        await save_dlt_message(msg, _time)  # Save the message with deletion time
 
     except Exception as e:
         print(f"Error occurred in search function: {e}")
@@ -108,10 +108,6 @@ async def page_navigation(bot, update):
         if start_idx + RESULTS_PER_PAGE < len(found_results):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
-        # Send a sticker when Next button is clicked
-        sticker = "CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA"  # Example sticker ID
-        await update.message.reply_sticker(sticker)
-
         # Edit the message to show the current result and navigation buttons
         await update.message.edit(
             text=results,
@@ -123,11 +119,10 @@ async def page_navigation(bot, update):
         print(f"Error occurred during pagination: {e}")
         await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
 
-
 @Client.on_callback_query(filters.regex(r"^recheck"))
 async def recheck(bot, update):
     clicked = update.from_user.id
-    try:
+    try:      
         typed = update.message.reply_to_message.from_user.id
     except:
         return await update.message.delete()       
@@ -139,10 +134,6 @@ async def recheck(bot, update):
     # Extract the IMDb movie ID from the callback data
     imdb_id = update.data.split("_")[-1]
     
-    # Send a sticker when recheck is clicked
-    sticker = "CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA"  # Example sticker ID
-    await update.message.reply_sticker(sticker)
-
     # Search for movie information using the IMDb ID
     try:
         movie_info = await search_imdb(imdb_id)
@@ -205,33 +196,21 @@ async def recheck(bot, update):
         print(f"Error occurred during recheck: {e}")
         await update.message.edit(f"❌ Error: `{e}`")
 
-
 @Client.on_callback_query(filters.regex(r"^request"))
 async def request(bot, update):
     clicked = update.from_user.id
     try:      
        typed = update.message.reply_to_message.from_user.id
     except:
-       return
-
-
-
-                
-@Client.on_callback_query(filters.regex(r"^request"))
-async def request(bot, update):
-    clicked = update.from_user.id
-    try:
-        typed = update.message.reply_to_message.from_user.id
-    except:
-        return await update.message.delete()
+       return await update.message.delete()       
     if clicked != typed:
-        return await update.answer("That's not for you! 👀", show_alert=True)
+       return await update.answer("That's not for you! 👀", show_alert=True)
 
     admin = (await get_group(update.message.chat.id))["user_id"]
-    id = update.data.split("_")[1]
-    name = await search_imdb(id)
-    url = "https://www.imdb.com/title/tt" + id
-    text = f"#RequestFromYourGroup\n\nName: {name}\nIMDb: {url}"
+    id    = update.data.split("_")[1]
+    name  = await search_imdb(id)
+    url   = "https://www.imdb.com/title/tt"+id
+    text  = f"#RequestFromYourGroup\n\nName: {name}\nIMDb: {url}"
     await bot.send_message(chat_id=admin, text=text, disable_web_page_preview=True)
     await update.answer("✅ Request Sent To Admin", show_alert=True)
     await update.message.delete(60)
