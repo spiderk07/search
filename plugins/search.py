@@ -8,14 +8,17 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 RESULTS_PER_PAGE = 1  # Show one result per page
 
-async def save_dlt_message(msg, _time):
-    # Example of saving the message and its scheduled deletion time.
-    # You should customize this based on how you handle message deletion scheduling in your system.
-    # Example: Save to a database or a dictionary
-    # Assuming you save the deletion time and message ID in a dictionary:
-    
-    delete_schedule[msg.message_id] = _time  # Example: Save the message ID and its deletion time
-    print(f"Message {msg.message_id} scheduled for deletion at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(_time))}")
+# Define the delete_schedule function to delete a message after a delay
+async def delete_schedule(bot, message, delay: int):
+    await asyncio.sleep(delay)
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Error occurred while deleting message: {e}")
+
+# Function to save a scheduled message for deletion
+async def save_dlt_message(message, delete_time: int):
+    await delete_schedule(message.bot, message, delete_time)
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
@@ -78,9 +81,13 @@ async def search(bot, message):
                 reply_markup=reply_markup
             )
 
-        # Automatically delete message after 600 seconds
-        _time = int(time()) + (15 * 60)  # Set the deletion time to 15 minutes from now
-        await save_dlt_message(msg, _time)  # Pass both msg and _time correctly
+            # Automatically delete message after 600 seconds (10 minutes)
+            _time = int(time()) + (15 * 60)
+            await save_dlt_message(msg, _time)
+
+        # Send a sticker after the movie result
+        sticker = "CAACAgIAAxkBAAEBHZJkGRgMPLKkz7qHvO2S7A2prh4gAAL5wADg6_9zQKaB1l3SO6f4d0E"  # Replace with your sticker ID
+        await message.reply_sticker(sticker)
 
     except Exception as e:
         print(f"Error occurred in search function: {e}")
