@@ -1,4 +1,4 @@
-import asyncio
+    import asyncio
 from info import *
 from utils import *
 from time import time
@@ -7,6 +7,15 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 RESULTS_PER_PAGE = 1  # Show one result per page
+
+async def save_dlt_message(msg, _time):
+    # Example of saving the message and its scheduled deletion time.
+    # You should customize this based on how you handle message deletion scheduling in your system.
+    # Example: Save to a database or a dictionary
+    # Assuming you save the deletion time and message ID in a dictionary:
+    
+    delete_schedule[msg.message_id] = _time  # Example: Save the message ID and its deletion time
+    print(f"Message {msg.message_id} scheduled for deletion at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(_time))}")
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
@@ -70,8 +79,8 @@ async def search(bot, message):
             )
 
         # Automatically delete message after 600 seconds
-        _time = int(time()) + (15 * 60)
-        await save_dlt_message(msg, _time)
+        _time = int(time()) + (15 * 60)  # Set the deletion time to 15 minutes from now
+        await save_dlt_message(msg, _time)  # Pass both msg and _time correctly
 
     except Exception as e:
         print(f"Error occurred in search function: {e}")
@@ -114,10 +123,6 @@ async def page_navigation(bot, update):
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
         )
-
-        # Send a sticker in reply to the user's action
-        sticker_id = "CAADAgADGgADkLk9R5cx4Xg4v3bhGzI"  # Replace with your desired sticker ID
-        await update.message.reply_sticker(sticker_id)
 
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
