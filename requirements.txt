@@ -1,12 +1,15 @@
 pyrogram
 tgcrypto
-ytthumb
-python-dotenv
 motor[srv] 
 cinemagoer
 aiohttp
 aiofiles
 asyncio
+Pillow
+speedtest
+googletrans==3.1.0a0
+requests
+gtts
 psutil
 Flask==3.0.0
 gunicorn==21.2.0
