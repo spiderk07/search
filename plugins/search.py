@@ -1,9 +1,9 @@
 import asyncio
 from info import *
 from utils import *
-from time import time
+from time import time 
 from client import User
-from pyrogram import Client, filters
+from pyrogram import Client, filters 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 RESULTS_PER_PAGE = 1  # Show one result per page
@@ -13,6 +13,7 @@ async def search(bot, message):
     f_sub = await force_sub(bot, message)
     if not f_sub:
         return
+
     channels = (await get_group(message.chat.id))["channels"]
     if not channels:
         return
@@ -20,39 +21,47 @@ async def search(bot, message):
         return
 
     query = message.text
-    head = "<b><I>★ Powered by:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+    head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
     page_number = 1  # Default to the first page
 
     try:
+        # List to hold found results
         found_results = []
+
+        # Collect results from channels
         for channel in channels:
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
                 if name not in found_results:
                     found_results.append(name)
 
+        # If no results are found, search IMDb and send suggestions
         if not found_results:
-            # No results found in channels; suggest IMDb movies
             movies = await search_imdb(query)
             buttons = [[InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")] for movie in movies]
-
+            
+            # Send a message with IMDb suggestions
             msg = await message.reply_photo(
                 photo="https://graph.org/file/1ee45a6e2d4d6a9262a12.jpg",
-                caption="<b><i>I couldn't find anything related to your query😕.\nDid you mean any of these?</i></b>",
+                caption="<b><i>I couldn't find anything related to your query😕.\nDid you mean any of these?</i></b>", 
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
         else:
-            # Display the first page of results
+            # Display the first result (one result per page)
             start_idx = (page_number - 1) * RESULTS_PER_PAGE
             page_result = found_results[start_idx]
+            
+            # Build the results for the current page (only one result)
             results = f"<b><i>♻️ {page_result}</i></b>"
-
+            
+            # Add pagination buttons only if there are more results
             buttons = []
             if page_number > 1:
                 buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
             if start_idx + RESULTS_PER_PAGE < len(found_results):
                 buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
-
+            
+            # Log and send the message with results and pagination buttons
             reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
             msg = await message.reply_text(
                 text=head + results,
@@ -60,107 +69,152 @@ async def search(bot, message):
                 reply_markup=reply_markup
             )
 
-        # Schedule deletion of the message after 600 seconds (10 minutes)
-        await schedule_deletion(msg, 600)
+        # Automatically delete message after 600 seconds
+        _time = int(time()) + (15 * 60)
+        await save_dlt_message(msg, _time)
 
     except Exception as e:
         print(f"Error occurred in search function: {e}")
         await message.reply("An error occurred while processing your request. Please try again later.")
 
-async def schedule_deletion(msg, delay):
-    """Schedule deletion of a message after a given delay in seconds."""
-    await asyncio.sleep(delay)
-    try:
-        await msg.delete()
-    except Exception as e:
-        print(f"Error occurred while deleting message: {e}")
-
-@Client.on_callback_query(filters.regex(r"^page_"))
+@Client.on_callback_query(filters.regex(r"^page"))
 async def page_navigation(bot, update):
     try:
-        print("Callback data received:", update.data)  # Debugging
+        # Extract page number and query from callback data
+        data = update.data.split("_")
+        page_number = int(data[1])  # Extract the page number
+        query = data[2]  # Extract the original query
 
-        # Extracting data from callback
-        data = update.data.split('_')
-        page_number = int(data[1])
-        query = data[2]
-
-        # Check if the user interacting is the message sender
-        clicked = update.from_user.id
-        typed = update.message.reply_to_message.from_user.id
-        if clicked != typed:
-            return await update.answer("That's not for you! 👀", show_alert=True)
-
-        # Send a sticker to simulate loading
-        await update.message.reply_sticker("CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA")
-
-        # Wait briefly to let the sticker display before updating the results
-        await asyncio.sleep(1.5)  # Adjust delay as needed for best effect
-
-        # Search across channels
+        # Get the list of results from the search
         channels = (await get_group(update.message.chat.id))["channels"]
         found_results = []
+
         for channel in channels:
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
                 if name not in found_results:
                     found_results.append(name)
 
-        # Calculate result range for the page
+        # Show the results for the current page
         start_idx = (page_number - 1) * RESULTS_PER_PAGE
-        end_idx = start_idx + RESULTS_PER_PAGE
-        page_results = found_results[start_idx:end_idx]
+        page_result = found_results[start_idx]
 
-        # Check if there are results
-        if not page_results:
-            await update.answer("No more results to show.", show_alert=True)
-            return
+        results = f"<b><i>♻️ {page_result}</i></b>"
 
-        # Format results and setup buttons
-        results = "\n\n".join([f"<b><I>♻️ {name}</I></b>" for name in page_results])
+        # Create navigation buttons
         buttons = []
         if page_number > 1:
             buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
-        if end_idx < len(found_results):
+        if start_idx + RESULTS_PER_PAGE < len(found_results):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
-        # Update the message with new results and navigation buttons
+        # Send a sticker when Next button is clicked
+        sticker = "CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA"  # Example sticker ID
+        await update.message.reply_sticker(sticker)
+
+        # Edit the message to show the current result and navigation buttons
         await update.message.edit(
-            text=f"<b><I>★ Powered by:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n" + results,
+            text=results,
             disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([buttons])
+            reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
         )
 
-        # Schedule deletion
-        await schedule_deletion(update.message, 600)
-
     except Exception as e:
-        print(f"Error in page_navigation: {e}")
-        await update.message.edit(f"❌ Error: `{e}`")
+        print(f"Error occurred during pagination: {e}")
+        await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
 
-@Client.on_callback_query(filters.regex(r"^recheck_"))
-async def imdb_recheck(bot, update):
+
+@Client.on_callback_query(filters.regex(r"^recheck"))
+async def recheck(bot, update):
+    clicked = update.from_user.id
     try:
-        # Extracting IMDb movie ID from callback data
-        movie_id = update.data.split("_")[1]
-        print(f"Rechecking IMDb for movie ID: {movie_id}")  # Debugging
+        typed = update.message.reply_to_message.from_user.id
+    except:
+        return await update.message.delete()       
+    if clicked != typed:
+        return await update.answer("That's not for you! 👀", show_alert=True)
 
-        # Fetching movie details
-        movie = await search_imdb(movie_id)
-        if not movie:
-            return await update.answer("No details found for this movie.", show_alert=True)
+    await update.message.edit("Searching... 💥")
 
-        # Formatting and sending movie details
-        url = f"https://www.imdb.com/title/tt{movie_id}"
-        text = f"<b>IMDb Title:</b> {movie['title']}\n\n" + \
-               f"<b>Description:</b> {movie.get('description', 'No description available.')}\n\n" + \
-               f"<a href='{url}'>More on IMDb</a>"
+    # Extract the IMDb movie ID from the callback data
+    imdb_id = update.data.split("_")[-1]
+    
+    # Send a sticker when recheck is clicked
+    sticker = "CAACAgUAAxkBAAEBkV5gY-s6DLph3KDmtY7DsfVwKLRO0wACXwADh5fVAwHEzpoL_qosBA"  # Example sticker ID
+    await update.message.reply_sticker(sticker)
 
-        await update.message.edit(text, disable_web_page_preview=True)
+    # Search for movie information using the IMDb ID
+    try:
+        movie_info = await search_imdb(imdb_id)
+
+        # Handle cases where movie_info might be a string (e.g., the movie title directly)
+        query = movie_info.get('title') if isinstance(movie_info, dict) else movie_info
+
+        # Fetch the channels linked with the group
+        channels = (await get_group(update.message.chat.id))["channels"]
+        head = "<b><I>★ Pᴏᴡᴇʀᴇᴄreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+        found_results = []
+
+        for channel in channels:
+            async for msg in User.search_messages(chat_id=channel, query=query):
+                name = msg.text or msg.caption
+                if name not in found_results:
+                    found_results.append(name)
+
+        if found_results:
+            # Display the first result (one result per page)
+            page_number = 1
+            start_idx = (page_number - 1) * RESULTS_PER_PAGE
+            page_result = found_results[start_idx]
+
+            # Build the results for the current page (only one result)
+            results = f"<b><i>♻️🍿 {page_result}</i></b>"
+
+            # Add pagination buttons only if there are more results
+            buttons = []
+            if page_number > 1:
+                buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
+            if start_idx + RESULTS_PER_PAGE < len(found_results):
+                buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
+
+            # Edit the message with results and pagination buttons
+            await update.message.edit(
+                text=head + results,
+                disable_web_page_preview=True,
+                reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
+            )
+
+            # Automatically delete message after 600 seconds
+            await asyncio.sleep(600)
+            await update.message.delete()
+
+        else:
+            # If no results are found, send an option to request the movie from an admin
+            msg = await update.message.edit(
+                "Still no results found! You may request this movie from the group admin.",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("🎯 Request To Admin 🎯", callback_data=f"request_{imdb_id}")]]
+                )
+            )
+
+            # Automatically delete message after 600 seconds
+            await asyncio.sleep(600)
+            await msg.delete()
 
     except Exception as e:
-        print(f"Error in imdb_recheck: {e}")
+        print(f"Error occurred during recheck: {e}")
         await update.message.edit(f"❌ Error: `{e}`")
+
+
+@Client.on_callback_query(filters.regex(r"^request"))
+async def request(bot, update):
+    clicked = update.from_user.id
+    try:      
+       typed = update.message.reply_to_message.from_user.id
+    except:
+       return
+
+
 
                 
 @Client.on_callback_query(filters.regex(r"^request"))
