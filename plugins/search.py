@@ -35,7 +35,7 @@ async def search(bot, message):
         return
 
     query = message.text
-    head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+    head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator70</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
     page_number = 1  # Default to the first page
 
     try:
@@ -66,7 +66,7 @@ async def search(bot, message):
             page_result = found_results[start_idx]
             
             # Build the results for the current page (only one result)
-            results = f"<b><i>♻️ {page_result}</i></b>"
+            results = f"<b><i>🎬 {page_result}</i></b>"
             
             # Add pagination buttons only if there are more results
             buttons = []
@@ -117,7 +117,7 @@ async def page_navigation(bot, update):
         start_idx = (page_number - 1) * RESULTS_PER_PAGE
         page_result = found_results[start_idx]
 
-        results = f"<b><i>♻️ {page_result}</i></b>"
+        results = f"<b><i>🎬 {page_result}</i></b>"
 
         # Create navigation buttons
         buttons = []
@@ -165,7 +165,7 @@ async def recheck(bot, update):
 
         # Fetch the channels linked with the group
         channels = (await get_group(update.message.chat.id))["channels"]
-        head = "<b><I>★ Pᴏᴡᴇʀᴇᴄreator7</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+        head = "<b><I>★ Pᴏᴡᴇʀᴇᴅ ʙʏ:@Skcreator70</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
         found_results = []
 
         for channel in channels:
@@ -181,7 +181,7 @@ async def recheck(bot, update):
             page_result = found_results[start_idx]
 
             # Build the results for the current page (only one result)
-            results = f"<b><i>♻️🍿 {page_result}</i></b>"
+            results = f"<b><i>🎬 {page_result}</i></b>"
 
             # Add pagination buttons only if there are more results
             buttons = []
