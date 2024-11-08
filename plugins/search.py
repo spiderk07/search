@@ -69,7 +69,7 @@ async def search(bot, message):
             await save_dlt_message(bot, msg, _time)
 
         # Send the sticker after sending movie results or suggestions
-        sticker = "CAACAgIAAxkBAAEBHZJkGRgMPLKkz7qHvO2S7A2prh4gAAL5wADg6_9zQKaB1l3SO6f4d0E"
+        sticker = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"
         await message.reply_sticker(sticker)
 
     except Exception as e:
@@ -109,7 +109,7 @@ async def page_navigation(bot, update):
         )
 
         # Send a sticker after each result page
-        sticker = "CAACAgIAAxkBAAEBHZJkGRgMPLKkz7qHvO2S7A2prh4gAAL5wADg6_9zQKaB1l3SO6f4d0E"
+        sticker = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"
         await update.message.reply_sticker(sticker)
 
     except Exception as e:
