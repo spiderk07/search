@@ -83,8 +83,8 @@ async def search(bot, message):
                 reply_markup=reply_markup
             )
 
-            # Automatically delete message after 600 seconds (10 minutes)
-            _time = int(time()) + (15 * 60)
+            # Automatically delete message after 300 seconds (5 minutes)
+            _time = int(time()) + (5 * 60)
             await save_dlt_message(bot, msg, _time)
 
         # Send a sticker after the movie result
@@ -198,7 +198,7 @@ async def recheck(bot, update):
             )
 
             # Automatically delete message after 600 seconds
-            await asyncio.sleep(600)
+            await asyncio.sleep(300)
             await update.message.delete()
 
         else:
@@ -211,7 +211,7 @@ async def recheck(bot, update):
             )
 
             # Automatically delete message after 600 seconds
-            await asyncio.sleep(600)
+            await asyncio.sleep(300)
             await msg.delete()
 
     except Exception as e:
