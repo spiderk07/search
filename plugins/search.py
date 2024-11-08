@@ -115,9 +115,18 @@ async def page_navigation(bot, update):
 
         # Show the results for the current page
         start_idx = (page_number - 1) * RESULTS_PER_PAGE
-        page_result = found_results[start_idx]
+        if start_idx >= len(found_results):
+            await update.answer("No more results available.", show_alert=True)
+            return
 
+        page_result = found_results[start_idx]
         results = f"<b><i>🎬 {page_result}</i></b>"
+
+        # Display the sticker for 2 seconds before updating to the next page
+        sticker_id = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"  # Replace with your sticker ID
+        sticker_msg = await update.message.reply_sticker(sticker_id)
+        await asyncio.sleep(2)
+        await sticker_msg.delete()  # Remove the sticker after 2 seconds
 
         # Create navigation buttons
         buttons = []
@@ -126,16 +135,12 @@ async def page_navigation(bot, update):
         if start_idx + RESULTS_PER_PAGE < len(found_results):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
-        # Send sticker after the result
+        # Edit the message with the results and pagination buttons
         await update.message.edit(
             text=results,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
         )
-
-        # Send a sticker after the movie result
-        sticker = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"  # Replace with your sticker ID
-        await update.message.reply_sticker(sticker)
 
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
@@ -205,39 +210,12 @@ async def recheck(bot, update):
             # If no results are found, send an option to request the movie from an admin
             msg = await update.message.edit(
                 "Still no results found! You may request this movie from the group admin.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("🎯 Request To Admin 🎯", callback_data=f"request_{imdb_id}")]]
-                )
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 Request from Admin 🎯", url="https://t.me/SKadminrobot")]])
             )
 
-            # Automatically delete message after 600 seconds
-            await asyncio.sleep(300)
-            await update.message.delete()
+            # Automatically delete the message after 600 seconds (10 minutes)
+            await save_dlt_message(bot, msg, int(time()) + (10 * 60))
 
     except Exception as e:
-        print(f"Error during recheck: {e}")
-        await update.answer("An error occurred while processing your request.", show_alert=True)
-
-@Client.on_callback_query(filters.regex(r"^request"))
-async def request(bot, update):
-    try:
-        clicked = update.from_user.id
-        typed = update.message.reply_to_message.from_user.id if update.message.reply_to_message else None
-        if clicked != typed:
-            return await update.answer("That's not for you! 👀", show_alert=True)
-
-        admin = (await get_group(update.message.chat.id))["user_id"]
-        id = update.data.split("_")[1]
-        name = await search_imdb(id)
-        url = f"https://www.imdb.com/title/tt{id}"
-        text = f"#RequestFromYourGroup\n\nName: {name}\nIMDb: {url}"
-        await bot.send_message(chat_id=admin, text=text, disable_web_page_preview=True)
-        
-        # Send confirmation and delete after a delay
-        await update.answer("✅ Request Sent To Admin", show_alert=True)
-        await asyncio.sleep(60)  # Wait for 60 seconds before deleting the message
-        await update.message.delete()
-
-    except Exception as e:
-        print(f"Error during request: {e}")
-        await update.answer("An error occurred while processing your request.", show_alert=True)
+        print(f"Error occurred during recheck: {e}")
+        await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
