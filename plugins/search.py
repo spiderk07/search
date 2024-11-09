@@ -8,19 +8,17 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 RESULTS_PER_PAGE = 1  # Show one result per page
 
-# Define the delete_schedule function to delete a message after a delay
+# Function to delete a message after a delay
 async def delete_schedule(bot, message, delay: int):
     await asyncio.sleep(delay)
     try:
-        # Use bot parameter to delete the message
-        await message.delete()
+        await bot.delete_messages(chat_id=message.chat.id, message_ids=message.message_id)
     except Exception as e:
         print(f"Error occurred while deleting message: {e}")
 
-# Function to save a scheduled message for deletion
-async def save_dlt_message(bot, message, delete_time: int):
-    # Pass bot parameter along with the message and time to delete
-    await delete_schedule(bot, message, delete_time)
+# Wrapper function to save a message for deletion after a specific time
+async def save_dlt_message(bot, message, delete_after_seconds: int):
+    await delete_schedule(bot, message, delete_after_seconds)
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
@@ -35,7 +33,8 @@ async def search(bot, message):
         return
 
     query = message.text
-    head = "<b><I>★ Powered by:@Skcreator70</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
+    header = "<b><i>★ Powered by:@Skcreator70</i></b>\n\n🍿 Here are your movie links 👇\n\n"
+    footer = "<i>Suggestions: try refining your search if you don't see what you're looking for.</i>"
     page_number = 1  # Default to the first page
 
     try:
@@ -46,50 +45,57 @@ async def search(bot, message):
         for channel in channels:
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
-                if name not in found_results:
+                if name and name not in found_results:
                     found_results.append(name)
 
-        # If no results are found, search IMDb and send suggestions
-        if not found_results:
+        # Show total result count at the top
+        if found_results:
+            total_results = len(found_results)
+            head = f"{header}🔍 <b>Total Results Found: {total_results}</b>\n\n"
+        else:
+            # Fallback if no results found
             movies = await search_imdb(query)
             buttons = [[InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")] for movie in movies]
             
-            # Send a message with IMDb suggestions
             msg = await message.reply_photo(
                 photo="https://graph.org/file/1ee45a6e2d4d6a9262a12.jpg",
-                caption="<b><i>I couldn't find anything related to your query😕.\nDid you mean any of these?</i></b>", 
+                caption="<b><i>Sorry, no results found for your query 😕.\nDid you mean any of these?</i></b>", 
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
-        else:
-            # Display the first result (one result per page)
-            start_idx = (page_number - 1) * RESULTS_PER_PAGE
-            page_result = found_results[start_idx]
-            
-            # Build the results for the current page (only one result)
-            results = f"<b><i>🎬 {page_result}</i></b>"
-            
-            # Add pagination buttons only if there are more results
-            buttons = []
-            if page_number > 1:
-                buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
-            if start_idx + RESULTS_PER_PAGE < len(found_results):
-                buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
-            
-            # Log and send the message with results and pagination buttons
-            reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
-            msg = await message.reply_text(
-                text=head + results,
-                disable_web_page_preview=True,
-                reply_markup=reply_markup
-            )
+            await save_dlt_message(bot, msg, 300)
+            return
 
-            # Automatically delete message after 300 seconds (5 minutes)
-            _time = int(time()) + (5 * 60)
-            await save_dlt_message(bot, msg, _time)
+        # Display the first result (one result per page)
+        start_idx = (page_number - 1) * RESULTS_PER_PAGE
+        page_result = found_results[start_idx]
+
+        # Create the results message
+        results = f"<b><i>🎬 {page_result}</i></b>\n\n{footer}"
+
+        # Set up pagination buttons
+        buttons = []
+        if page_number > 1:
+            buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
+        if start_idx + RESULTS_PER_PAGE < total_results:
+            buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
+
+        # Send the result message with navigation buttons
+        reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
+        msg = await message.reply_text(
+            text=head + results,
+            disable_web_page_preview=True,
+            reply_markup=reply_markup
+        )
+
+        # Schedule deletion of the message after 5 minutes (300 seconds)
+        await save_dlt_message(bot, msg, 300)
 
         # Send a sticker after the movie result
-        sticker = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"  # Replace with your sticker ID
-        await message.reply_sticker(sticker)
+        sticker = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"
+        sticker_msg = await message.reply_sticker(sticker)
+        
+        # Schedule sticker deletion after 5 seconds
+        await save_dlt_message(bot, sticker_msg, 5)
 
     except Exception as e:
         print(f"Error occurred in search function: {e}")
@@ -100,8 +106,8 @@ async def page_navigation(bot, update):
     try:
         # Extract page number and query from callback data
         data = update.data.split("_")
-        page_number = int(data[1])  # Extract the page number
-        query = data[2]  # Extract the original query
+        page_number = int(data[1])
+        query = data[2]
 
         # Get the list of results from the search
         channels = (await get_group(update.message.chat.id))["channels"]
@@ -110,41 +116,46 @@ async def page_navigation(bot, update):
         for channel in channels:
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
-                if name not in found_results:
+                if name and name not in found_results:
                     found_results.append(name)
 
-        # Show the results for the current page
+        # Check if we have results and if we’re on a valid page
         start_idx = (page_number - 1) * RESULTS_PER_PAGE
         if start_idx >= len(found_results):
             await update.answer("No more results available.", show_alert=True)
             return
 
+        # Display the result for the current page
         page_result = found_results[start_idx]
-        results = f"<b><i>🎬 {page_result}</i></b>"
+        results = f"<b><i>🎬 {page_result}</i></b>\n\n<i>Suggestions: try refining your search if you don't see what you're looking for.</i>"
 
-        # Display the sticker for 2 seconds before updating to the next page
-        sticker_id = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"  # Replace with your sticker ID
+        # Display a sticker for 2 seconds before showing the next page
+        sticker_id = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"
         sticker_msg = await update.message.reply_sticker(sticker_id)
         await asyncio.sleep(2)
         await sticker_msg.delete()  # Remove the sticker after 2 seconds
 
-        # Create navigation buttons
+        # Update pagination buttons
         buttons = []
         if page_number > 1:
             buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
         if start_idx + RESULTS_PER_PAGE < len(found_results):
             buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
 
-        # Edit the message with the results and pagination buttons
+        # Edit the message to show the new page result
         await update.message.edit(
             text=results,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
         )
 
+        # Schedule deletion of the message after 5 minutes (300 seconds)
+        await save_dlt_message(bot, update.message, 300)
+
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
         await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
+
 
 @Client.on_callback_query(filters.regex(r"^recheck"))
 async def recheck(bot, update):
