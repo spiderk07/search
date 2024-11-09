@@ -35,8 +35,8 @@ async def search(bot, message):
     query = message.text
     header = "<b><i>★ Powered by:@Skcreator70</i></b>\n\n"
     footer = (
-        "<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>🔗 Join WhatsApp Channel</a>"
-        "<i>Cʟɪᴄᴋ ᴏɴ Nᴇxᴛ Bᴜᴛᴛᴏɴ Tᴏ Gᴏ Tᴏ Nᴇxᴛ Pᴀɢᴇ 👇</i>"
+        "<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>☛ 𝙅𝙤𝙞𝙣 𝙒𝙝𝙖𝙩𝙨𝘼𝙥𝙥 𝘾𝙝𝙖𝙣𝙣𝙚𝙡</a>\n"
+        "<i>Cʟɪᴄᴋ ᴏɴ Nᴇxᴛ Bᴜᴛᴛᴏɴ Tᴏ Gᴏ Tᴏ Nᴇxᴛ Pᴀɢᴇ ☟</i>"
     )
     page_number = 1  # Default to the first page
 
@@ -72,7 +72,7 @@ async def search(bot, message):
         if page_number > 1:
             buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
         if start_idx + RESULTS_PER_PAGE < total_results:
-            buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
+            buttons.append(InlineKeyboardButton("Next ⏭", callback_data=f"page_{page_number + 1}_{query}"))
 
         reply_markup = InlineKeyboardMarkup([buttons]) if buttons else None
         msg = await message.reply_text(
@@ -119,13 +119,13 @@ async def page_navigation(bot, update):
 
         # Prepare and show the next page
         page_result = found_results[start_idx]
-        results = f"<b><i>🎬 {page_result}</i></b>\n\n<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>🔗 Join WhatsApp Channel</a>\n<i>Cʟɪᴄᴋ ᴏɴ Nᴇxᴛ Bᴜᴛᴛᴏɴ Tᴏ Gᴏ Tᴏ Nᴇxᴛ Pᴀɢᴇ 👇</i>"
+        results = f"<b><i>🎬 {page_result}</i></b>\n\n<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>☛ 𝙅𝙤𝙞𝙣 𝙒𝙝𝙖𝙩𝙨𝘼𝙥𝙥 𝘾𝙝𝙖𝙣𝙣𝙚𝙡</a>\n<i>Cʟɪᴄᴋ ᴏɴ Nᴇxᴛ Bᴜᴛᴛᴏɴ Tᴏ Gᴏ Tᴏ Nᴇxᴛ Pᴀɢᴇ ☟</i>"
 
         buttons = []
         if page_number > 1:
             buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
         if start_idx + RESULTS_PER_PAGE < len(found_results):
-            buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
+            buttons.append(InlineKeyboardButton("Next ⏭", callback_data=f"page_{page_number + 1}_{query}"))
 
         new_msg = await bot.send_message(
             chat_id=update.message.chat.id,
