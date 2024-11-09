@@ -33,8 +33,11 @@ async def search(bot, message):
         return
 
     query = message.text
-    header = "<b><i>★ Powered by:@Skcreator70</i></b>\n\n🍿 Here are your movie links 👇\n\n"
-    footer = "<i>Suggestions: try refining your search if you don't see what you're looking for.</i>"
+    header = "<b><i>★ Powered by:@Skcreator70</i></b>\n"
+    footer = (
+        "<i>Suggestions: Try refining your search if you don't see what you're looking for.</i>\n\n"
+        "<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>🔗 Join Our WhatsApp Channel</a>"
+    )
     page_number = 1  # Default to the first page
 
     try:
@@ -127,7 +130,7 @@ async def page_navigation(bot, update):
 
         # Display the result for the current page
         page_result = found_results[start_idx]
-        results = f"<b><i>🎬 {page_result}</i></b>\n\n<i>Suggestions: try refining your search if you don't see what you're looking for.</i>"
+        results = f"<b><i>🎬 {page_result}</i></b>\n\n<i>Suggestions: Try refining your search if you don't see what you're looking for.</i>\n\n<a href='https://whatsapp.com/channel/0029Va69Ts2C6ZvmEWsHNo3c'>🔗 Join Our WhatsApp Channel</a>"
 
         # Display a sticker for 2 seconds before showing the next page
         sticker_id = "CAACAgIAAxkBAAIrCGUwjom4s9P26nsiP-QAAUV-qDDOhQACcQgAAoSUQUlvaAkaprvOczAE"
@@ -155,6 +158,7 @@ async def page_navigation(bot, update):
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
         await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
+
 
 
 @Client.on_callback_query(filters.regex(r"^recheck"))
