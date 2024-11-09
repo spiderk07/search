@@ -12,7 +12,7 @@ RESULTS_PER_PAGE = 1  # Show one result per page
 async def delete_schedule(bot, message, delay: int):
     await asyncio.sleep(delay)
     try:
-        await bot.delete_messages(chat_id=message.chat.id, message_ids=message.message_id)
+        await bot.delete_messages(chat_id=message.chat.id, message_ids=message.id)  # Fixed to use message.id
     except Exception as e:
         print(f"Error occurred while deleting message: {e}")
 
