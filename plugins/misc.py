@@ -1,3 +1,4 @@
+import requests
 from utils import *
 from pyrogram import Client, filters 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
@@ -58,3 +59,20 @@ async def misc(bot, update):
                                   disable_web_page_preview=True,
                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
          
+
+def download_youtube_thumbnail(video_id):
+    # Construct the URL for the YouTube thumbnail
+    thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+    
+    # Send request to get the thumbnail image
+    response = requests.get(thumbnail_url, stream=True)
+    if response.status_code == 200:
+        # Save the thumbnail locally
+        thumbnail_path = f"{video_id}_thumbnail.jpg"
+        with open(thumbnail_path, "wb") as file:
+            for chunk in response.iter_content(1024):
+                file.write(chunk)
+        return thumbnail_path
+    else:
+        return None
+        
