@@ -1,9 +1,16 @@
 from utils import *
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import re
+import requests
 
 # Replace with the actual admin user ID
 ADMIN_USER_ID = 5928972764
+
+YOUTUBE_URL_PATTERN = r"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})"
+
+def get_hd_thumbnail_url(video_id):
+    return f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
 
 @Client.on_message(filters.command("start") & ~filters.channel)
 async def start(bot, message):
@@ -42,26 +49,25 @@ async def id(bot, message):
         if message.reply_to_message.forward_from:
             text += f"Replied Message Forward from User ID: `{message.reply_to_message.forward_from.id}`\n"
         if message.reply_to_message.forward_from_chat:
-            text += f"Replied Message Forward from Chat ID: `{message.reply_to_message.forward_from_chat.id}\n`"
+            text += f"Replied Message Forward from Chat ID: `{message.reply_to_message.forward_from_chat.id}`\n"
     await message.reply(text)
-
-@Client.on_message(filters.command("thumbnail") & filters.user(ADMIN_USER_ID))
-async def download_thumbnail(bot, message):
-    try:
-        # Extract the YouTube video ID from the message
-        video_id = message.text.split(" ", 1)[1]
-        thumbnail_path = download_youtube_thumbnail(video_id)
-        
-        if thumbnail_path:
-            await bot.send_photo(message.chat.id, thumbnail_path, caption="Here is the YouTube thumbnail!")
-        else:
-            await message.reply_text("Couldn't download the thumbnail. Please check the video ID.")
-    except IndexError:
-        await message.reply_text("Please provide a valid YouTube video ID.")
 
 @Client.on_message(filters.private & ~filters.user(ADMIN_USER_ID))
 async def auto_reply_private(bot, message):
     await message.reply_text("Hello! Thank you for your message. The admin will respond shortly.")
+
+@Client.on_message(filters.user(ADMIN_USER_ID) & filters.regex(YOUTUBE_URL_PATTERN))
+async def send_thumbnail_from_link(bot, message):
+    match = re.search(YOUTUBE_URL_PATTERN, message.text)
+    if match:
+        video_id = match.group(1)
+        thumbnail_url = get_hd_thumbnail_url(video_id)
+        
+        response = requests.get(thumbnail_url)
+        if response.status_code == 200:
+            await bot.send_photo(message.chat.id, thumbnail_url, caption="Here is the HD YouTube thumbnail!")
+        else:
+            await message.reply_text("Couldn't download the thumbnail. Please check the video link.")
 
 @Client.on_callback_query(filters.regex(r"^misc"))
 async def misc(bot, update):
