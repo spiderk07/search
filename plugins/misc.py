@@ -3,6 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import re
 import requests
+from io import BytesIO
 
 # Replace with the actual admin user ID
 ADMIN_USER_ID = 5928972764
@@ -10,7 +11,35 @@ ADMIN_USER_ID = 5928972764
 YOUTUBE_URL_PATTERN = r"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})"
 
 def get_hd_thumbnail_url(video_id):
+    """Returns the highest resolution YouTube thumbnail URL."""
     return f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+
+def get_fallback_thumbnail_url(video_id):
+    """Returns a fallback YouTube thumbnail URL (lower resolution)."""
+    return f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+
+@Client.on_message(filters.user(ADMIN_USER_ID) & filters.regex(YOUTUBE_URL_PATTERN))
+async def send_thumbnail_from_link(bot, message):
+    match = re.search(YOUTUBE_URL_PATTERN, message.text)
+    if match:
+        video_id = match.group(1)
+        
+        # Attempt to get the highest resolution thumbnail
+        thumbnail_url = get_hd_thumbnail_url(video_id)
+        response = requests.get(thumbnail_url)
+
+        # If HD thumbnail is not available, fallback to a lower resolution
+        if response.status_code != 200:
+            thumbnail_url = get_fallback_thumbnail_url(video_id)
+            response = requests.get(thumbnail_url)
+
+        if response.status_code == 200:
+            # Send the image as a file
+            image = BytesIO(response.content)
+            image.name = f"{video_id}_thumbnail.jpg"
+            await bot.send_photo(message.chat.id, image, caption="Here is the YouTube thumbnail in HD quality!")
+        else:
+            await message.reply_text("Couldn't download the thumbnail. Please check the video link.")
 
 @Client.on_message(filters.command("start") & ~filters.channel)
 async def start(bot, message):
@@ -55,19 +84,6 @@ async def id(bot, message):
 @Client.on_message(filters.private & ~filters.user(ADMIN_USER_ID))
 async def auto_reply_private(bot, message):
     await message.reply_text("Hello! Thank you for your message. The admin will respond shortly.")
-
-@Client.on_message(filters.user(ADMIN_USER_ID) & filters.regex(YOUTUBE_URL_PATTERN))
-async def send_thumbnail_from_link(bot, message):
-    match = re.search(YOUTUBE_URL_PATTERN, message.text)
-    if match:
-        video_id = match.group(1)
-        thumbnail_url = get_hd_thumbnail_url(video_id)
-        
-        response = requests.get(thumbnail_url)
-        if response.status_code == 200:
-            await bot.send_photo(message.chat.id, thumbnail_url, caption="Here is the HD YouTube thumbnail!")
-        else:
-            await message.reply_text("Couldn't download the thumbnail. Please check the video link.")
 
 @Client.on_callback_query(filters.regex(r"^misc"))
 async def misc(bot, update):
