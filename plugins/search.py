@@ -22,7 +22,8 @@ async def save_dlt_message(bot, message, delete_after_seconds: int):
 
 # Function to replace Telegram links with your specific username
 def replace_telegram_links(text):
-    return text.replace("https://t.me/", "https://t.me/skfilmbox")
+    # Use regex to replace only the base Telegram links
+    return re.sub(r"https://t\.me/\w+", "https://t.me/skfilmbox", text)
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
