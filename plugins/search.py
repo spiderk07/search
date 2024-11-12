@@ -20,6 +20,10 @@ async def delete_schedule(bot, message, delay: int):
 async def save_dlt_message(bot, message, delete_after_seconds: int):
     await delete_schedule(bot, message, delete_after_seconds)
 
+# Function to replace Telegram links with your specific username
+def replace_telegram_links(text):
+    return text.replace("https://t.me/", "https://t.me/skfilmbox")
+
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
     f_sub = await force_sub(bot, message)
@@ -46,7 +50,8 @@ async def search(bot, message):
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
                 if name and name not in found_results:
-                    found_results.append(name)
+                    # Replace Telegram links in the result
+                    found_results.append(replace_telegram_links(name))
 
         if found_results:
             total_results = len(found_results)
@@ -101,7 +106,8 @@ async def page_navigation(bot, update):
             async for msg in User.search_messages(chat_id=channel, query=query):
                 name = msg.text or msg.caption
                 if name and name not in found_results:
-                    found_results.append(name)
+                    # Replace Telegram links in the result
+                    found_results.append(replace_telegram_links(name))
 
         start_idx = (page_number - 1) * RESULTS_PER_PAGE
         if start_idx >= len(found_results):
@@ -139,78 +145,4 @@ async def page_navigation(bot, update):
 
     except Exception as e:
         print(f"Error occurred during pagination: {e}")
-        await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
-
-@Client.on_callback_query(filters.regex(r"^recheck"))
-async def recheck(bot, update):
-    clicked = update.from_user.id
-    try:      
-        typed = update.message.reply_to_message.from_user.id
-    except:
-        return await update.message.delete()       
-    if clicked != typed:
-        return await update.answer("That's not for you! 👀", show_alert=True)
-
-    await update.message.edit("Searching... 💥")
-
-    # Extract the IMDb movie ID from the callback data
-    imdb_id = update.data.split("_")[-1]
-    
-    # Search for movie information using the IMDb ID
-    try:
-        movie_info = await search_imdb(imdb_id)
-
-        # Handle cases where movie_info might be a string (e.g., the movie title directly)
-        query = movie_info.get('title') if isinstance(movie_info, dict) else movie_info
-
-        # Fetch the channels linked with the group
-        channels = (await get_group(update.message.chat.id))["channels"]
-        head = "<b><I>★ Powered by:@Skcreator70</I></b>\n\n🍿 Your Movie Links 👇</I></b>\n\n"
-        found_results = []
-
-        for channel in channels:
-            async for msg in User.search_messages(chat_id=channel, query=query):
-                name = msg.text or msg.caption
-                if name not in found_results:
-                    found_results.append(name)
-
-        if found_results:
-            # Display the first result (one result per page)
-            page_number = 1
-            start_idx = (page_number - 1) * RESULTS_PER_PAGE
-            page_result = found_results[start_idx]
-
-            # Build the results for the current page (only one result)
-            results = f"<b><i>🎬 {page_result}</i></b>"
-
-            # Add pagination buttons only if there are more results
-            buttons = []
-            if page_number > 1:
-                buttons.append(InlineKeyboardButton("⏪ Previous", callback_data=f"page_{page_number - 1}_{query}"))
-            if start_idx + RESULTS_PER_PAGE < len(found_results):
-                buttons.append(InlineKeyboardButton("Next ⏩", callback_data=f"page_{page_number + 1}_{query}"))
-
-            # Edit the message with results and pagination buttons
-            await update.message.edit(
-                text=head + results,
-                disable_web_page_preview=True,
-                reply_markup=InlineKeyboardMarkup([buttons]) if buttons else None
-            )
-
-            # Automatically delete message after 600 seconds
-            await asyncio.sleep(300)
-            await update.message.delete()
-
-        else:
-            # If no results are found, send an option to request the movie from an admin
-            msg = await update.message.edit(
-                "Still no results found! You may request this movie from the group admin.",
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 Request from Admin 🎯", url="https://t.me/SKadminrobot")]])
-            )
-
-            # Automatically delete the message after 600 seconds (10 minutes)
-            await save_dlt_message(bot, msg, int(time()) + (10 * 60))
-
-    except Exception as e:
-        print(f"Error occurred during recheck: {e}")
         await update.answer("An error occurred while processing your request. Please try again later.", show_alert=True)
